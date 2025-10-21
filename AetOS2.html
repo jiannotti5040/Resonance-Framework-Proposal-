@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetOS: The Resonance Framework</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styling for the AetOS Interface */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .glass-pane {
+            background-color: rgba(16, 16, 16, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 10px 15px;
+        }
+        .nav-button:hover, .nav-button.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+        .nav-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #00aaff;
+            border-radius: 2px;
+        }
+        .module-content {
+            display: none;
+        }
+        .module-content.active {
+            display: block;
+        }
+        .form-input {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #00aaff;
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #0055ff, #00aaff);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 10px 20px;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 120, 255, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 150, 255, 0.4);
+        }
+        .equation-card {
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .equation-card:hover {
+            border-color: #00aaff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 170, 255, 0.2);
+        }
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #00aaff;
+        }
+        .agent-chat-bubble {
+            background-color: rgba(0, 170, 255, 0.1);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            padding: 12px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+        .user-chat-bubble {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            max-width: 80%;
+            align-self: flex-end;
+        }
+        .katex-display {
+             overflow-x: auto;
+             overflow-y: hidden;
+             scrollbar-width: thin;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .matrix-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.05;
+            overflow: hidden;
+        }
+        .matrix-column {
+            position: absolute;
+            top: -100%;
+            color: #00aaff;
+            font-family: monospace;
+            font-size: 14px;
+            animation: matrix-fall linear infinite;
+        }
+        @keyframes matrix-fall {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+        .quantum-field {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.1;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 170, 255, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(255, 0, 128, 0.2) 0%, transparent 50%);
+            filter: blur(20px);
+        }
+    </style>
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" integrity="sha384-Xi8rHCmBmhbuyyhbI88391ZKP2dmfnOl4rT9ZfRI7zTDRGto2drpcZErKCsw21eK" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js" integrity="sha384-X/XCfMm41DBSMGOZ+/Ped2FKLwB5isYvI2Ue90OFtrya4lVlCovkflwuAkexi2PY" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"></script>
+</head>
+<body class="w-full min-h-screen p-4 sm:p-6 lg:p-8 flex items-center justify-center bg-black relative">
+    
+    <!-- Animated Background Elements -->
+    <div class="quantum-field"></div>
+    <div class="matrix-background" id="matrix-bg"></div>
+    
+    <div class="w-full h-full max-w-7xl mx-auto glass-pane shadow-2xl shadow-cyan-500/10 flex flex-col relative" style="height: calc(100vh - 4rem);">
+        <!-- Header -->
+        <header class="flex-shrink-0 p-4 border-b border-white/10 flex justify-between items-center">
+            <h1 class="text-xl sm:text-2xl font-bold font-orbitron text-white">
+                <span class="text-cyan-400">Aet</span>OS: The Resonance Framework
+            </h1>
+            <div id="status-indicator" class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-sm text-gray-400">System Nominal</span>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="flex-shrink-0 flex items-center justify-start p-2 space-x-2 border-b border-white/10 overflow-x-auto">
+            <button data-module="dashboard" class="nav-button active">Dashboard</button>
+            <button data-module="agent" class="nav-button">Unified Field Agent</button>
+            <button data-module="primes" class="nav-button">Prime Resonance</button>
+            <button data-module="combinatorics" class="nav-button">Combinatorial Explorer</button>
+            <button data-module="harmonics" class="nav-button">Harmonic Cathedral</button>
+            <button data-module="governance" class="nav-button">LexGuard Governance</button>
+            <button data-module="quantum" class="nav-button">Quantum Resonance</button>
+            <button data-module="cosmology" class="nav-button">Cosmological Engine</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-grow p-4 sm:p-6 overflow-y-auto">
+            <!-- Dashboard Module -->
+            <div id="dashboard" class="module-content active">
+                <h2 class="text-2xl font-bold font-orbitron text-cyan-300 mb-4">Welcome to AetOS</h2>
+                <p class="text-gray-300 mb-6 max-w-3xl">
+                    This is the operational synthesis of the Universal Resonance Framework. It unifies the principles of prime number resonance, combinatorial physics, harmonic theory, and systemic governance into a single interactive environment. Each module is a cathedral of thought, built from the foundational documents you have assembled.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="glass-pane p-6 hover:border-cyan-400 transition-colors duration-300">
+                        <h3 class="font-orbitron text-lg text-cyan-400 mb-2">Unified Field Agent</h3>
+                        <p class="text-sm text-gray-400">Converse with the core intelligence of the system. Query equations by code (e.g., 'S-01', 'C-42') to analyze and compute their properties directly.</p>
+                    </div>
+                    <div class="glass-pane p-6 hover:border-cyan-400 transition-colors duration-300">
+                        <h3 class="font-orbitron text-lg text-cyan-400 mb-2">Prime Resonance</h3>
+                        <p class="text-sm text-gray-400">Explore the Iannotti Prime Resonance Engine. Calibrate the resonant coefficients and predict prime number characteristics using the O(1) framework.</p>
+                    </div>
+                    <div class="glass-pane p-6 hover:border-cyan-400 transition-colors duration-300">
+                        <h3 class="font-orbitron text-lg text-cyan-400 mb-2">Combinatorial Explorer</h3>
+                        <p class="text-sm text-gray-400">Interact with the 108 foundational equations of bounded systems. Input parameters and simulate outcomes for stability, chaos, and information dynamics.</p>
+                    </div>
+                    <div class="glass-pane p-6 hover:border-cyan-400 transition-colors duration-300">
+                        <h3 class="font-orbitron text-lg text-cyan-400 mb-2">Harmonic Cathedral</h3>
+                        <p class="text-sm text-gray-400">Visualize the mathematical beauty of music theory, from Rameau's principles to modern computational models. Analyze harmonic ratios and tonal structures.</p>
+                    </div>
+                    <div class="glass-pane p-6 hover:border-cyan-400 transition-colors duration-300">
+                        <h3 class="font-orbitron text-lg text-cyan-400 mb-2">LexGuard Governance</h3>
+                        <p class="text-sm text-gray-400">Simulate systemic harmony and safety. Adjust risk parameters based on the LexGuard framework to understand the balance between progress and stability.</p>
+                    </div>
+                     <div class="glass-pane p-6 hover:border-cyan-400 transition-colors duration-300">
+                        <h3 class="font-orbitron text-lg text-cyan-400 mb-2">Core Principle: Resonance</h3>
+                        <p class="text-sm text-gray-400">The system operates on the principle that primes, physics, music, and consciousness are manifestations of an underlying resonant, geometric structure.</p>
+                    </div>
+                </div>
+                
+                <!-- System Status -->
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-pane p-4 flex items-center">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <div>
+                            <p class="text-sm text-gray-400">Prime Engine</p>
+                            <p class="font-semibold">Calibrated</p>
+                        </div>
+                    </div>
+                    <div class="glass-pane p-4 flex items-center">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <div>
+                            <p class="text-sm text-gray-400">Field Agent</p>
+                            <p class="font-semibold">Online</p>
+                        </div>
+                    </div>
+                    <div class="glass-pane p-4 flex items-center">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <div>
+                            <p class="text-sm text-gray-400">Resonance Matrix</p>
+                            <p class="font-semibold">Stable</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unified Field Agent Module -->
+            <div id="agent" class="module-content h-full flex flex-col">
+                <h2 class="text-2xl font-bold font-orbitron text-cyan-300 mb-4">Unified Field Agent</h2>
+                <div id="chat-window" class="flex-grow bg-black/20 rounded-lg p-4 mb-4 overflow-y-auto flex flex-col space-y-4">
+                    <!-- Chat messages will be appended here -->
+                </div>
+                <div class="flex-shrink-0 flex space-x-2">
+                    <input type="text" id="chat-input" class="form-input w-full" placeholder="Enter equation code (e.g., S-01, C-42, I-77) or ask a question...">
+                    <button id="chat-send" class="btn-primary">Send</button>
+                </div>
+            </div>
+
+            <!-- Prime Resonance Module -->
+            <div id="primes" class="module-content">
+                <h2 class="text-2xl font-bold font-orbitron text-cyan-300 mb-4">Prime Resonance Engine</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="glass-pane p-4">
+                            <h3 class="font-semibold mb-2 text-white">Calibration Control</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-sm text-gray-400">Prime Limit (N)</label>
+                                    <input type="number" id="prime-limit" class="form-input w-full mt-1" value="10000">
+                                </div>
+                                <div>
+                                    <label class="text-sm text-gray-400">Resonance Factor (μ)</label>
+                                    <input type="number" id="resonance-factor" class="form-input w-full mt-1" value="1.0" step="0.1">
+                                </div>
+                                <button id="calibrate-primes" class="btn-primary w-full">Calibrate Resonance</button>
+                            </div>
+                        </div>
+                        <div class="glass-pane p-4">
+                            <h3 class="font-semibold mb-2 text-white">O(1) Prediction</h3>
+                             <div>
+                                <label class="text-sm text-gray-400">Prime Index (n)</label>
+                                <input type="number" id="prime-index-predict" class="form-input w-full mt-1" placeholder="e.g., 100">
+                            </div>
+                            <button id="predict-prime" class="btn-primary w-full mt-4">Predict p_n</button>
+                        </div>
+                         <div id="prime-results" class="glass-pane p-4 text-sm space-y-2">
+                            <h3 class="font-semibold mb-2 text-white">System Status</h3>
+                            <p><strong>State:</strong> <span id="prime-status">Idle</span></p>
+                            <p><strong>μg:</strong> <span id="prime-mu">N/A</span></p>
+                            <p><strong>σg:</strong> <span id="prime-sigma">N/A</span></p>
+                            <p><strong>Prediction:</strong> <span id="prime-prediction">N/A</span></p>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 glass-pane p-4">
+                        <canvas id="prime-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Combinatorial Explorer Module -->
+            <div id="combinatorics" class="module-content">
+                 <h2 class="text-2xl font-bold font-orbitron text-cyan-300 mb-4">Combinatorial Explorer</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                    <div class="lg:col-span-1 h-full flex flex-col">
+                        <div class="glass-pane p-4 flex-grow overflow-y-auto">
+                            <h3 class="font-semibold text-white mb-2">Equation Library</h3>
+                             <div class="flex space-x-2 mb-4">
+                                <button class="btn-secondary flex-1 py-1 px-2 text-sm rounded-md bg-white/10" onclick="filterEquations('S')">Stability (Ω)</button>
+                                <button class="btn-secondary flex-1 py-1 px-2 text-sm rounded-md bg-white/10" onclick="filterEquations('C')">Chaos (Λ)</button>
+                                <button class="btn-secondary flex-1 py-1 px-2 text-sm rounded-md bg-white/10" onclick="filterEquations('I')">Information (R)</button>
+                            </div>
+                            <div id="equation-list" class="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                                <!-- Equation cards will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div id="combinatorics-main" class="lg:col-span-2 glass-pane p-6 space-y-4 hidden">
+                        <h3 class="font-orbitron text-lg text-cyan-400" id="eq-title">Select an Equation</h3>
+                        <div class="text-lg font-mono bg-black/30 p-4 rounded-lg" id="eq-formula-display">...</div>
+                        <p class="text-sm text-gray-300" id="eq-description">...</p>
+                        <div id="eq-param-inputs" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <!-- Parameter inputs will be dynamically inserted here -->
+                        </div>
+                        <button id="eq-compute" class="btn-primary">Compute</button>
+                        <div class="mt-4 bg-black/30 p-4 rounded-lg">
+                            <h4 class="font-semibold text-white">Result:</h4>
+                            <p class="text-2xl font-mono text-cyan-300" id="eq-result">N/A</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Harmonic Cathedral Module -->
+            <div id="harmonics" class="module-content">
+                <h2 class="text-2xl font-bold font-orbitron text-cyan-300 mb-4">Harmonic Cathedral</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-4">
+                        <div class="glass-pane p-4">
+                             <h3 class="font-semibold mb-2 text-white">Harmonic Analysis</h3>
+                             <p class="text-sm text-gray-400 mb-2">Enter ratios like '3:2, 5:4' (Just Intonation) or '2^(7/12):1' (Equal Temperament).</p>
+                             <input type="text" id="harmonic-ratios" class="form-input w-full" value="3:2, 5:4, 4:3, 6:5">
+                             <button id="analyze-harmonics" class="btn-primary w-full mt-4">Analyze</button>
+                        </div>
+                         <div class="glass-pane p-4">
+                             <h3 class="font-semibold mb-2 text-white">Analysis Results</h3>
+                             <div id="harmonic-results" class="text-sm text-gray-300 space-y-1"></div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 glass-pane p-4 flex flex-col items-center justify-center">
+                        <h3 class="text-center mb-4 font-semibold">Harmonic Visualization (Circle of Fifths)</h3>
+                        <canvas id="harmonic-canvas" width="400" height="400"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LexGuard Governance Module -->
+            <div id="governance" class="module-content">
+                <h2 class="text-2xl font-bold font-orbitron text-cyan-300 mb-4">LexGuard Governance Simulator</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div class="glass-pane p-4">
+                            <h3 class="font-semibold mb-3 text-white">System Parameters</h3>
+                             <div class="space-y-4">
+                                <div>
+                                    <label for="gov-benefit" class="flex justify-between text-sm"><span>Benefit (Q/U)</span><span id="gov-benefit-val">50</span></label>
+                                    <input type="range" id="gov-benefit" min="0" max="100" value="50" class="w-full">
+                                </div>
+                                 <div>
+                                    <label for="gov-burden" class="flex justify-between text-sm"><span>Burden</span><span id="gov-burden-val">10</span></label>
+                                    <input type="range" id="gov-burden" min="0" max="50" value="10" class="w-full">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-pane p-4">
+                            <h3 class="font-semibold mb-3 text-white">Safety Tax Weights</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="gov-alpha" class="flex justify-between text-sm"><span>α (PARS Weight)</span><span id="gov-alpha-val">0.5</span></label>
+                                    <input type="range" id="gov-alpha" min="0" max="2" step="0.1" value="0.5" class="w-full">
+                                </div>
+                                <div>
+                                    <label for="gov-beta" class="flex justify-between text-sm"><span>β (Gap Weight)</span><span id="gov-beta-val">0.3</span></label>
+                                    <input type="range" id="gov-beta" min="0" max="2" step="0.1" value="0.3" class="w-full">
+                                </div>
+                                <div>
+                                    <label for="gov-gamma" class="flex justify-between text-sm"><span>γ (Fragility Weight)</span><span id="gov-gamma-val">0.8</span></label>
+                                    <input type="range" id="gov-gamma" min="0" max="2" step="0.1" value="0.8" class="w-full">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-pane p-6 flex flex-col items-center justify-center text-center">
+                        <h3 class="font-orbitron text-lg text-cyan-400 mb-4">System Harmony Score (H)</h3>
+                        <div id="harmony-score" class="text-6xl font-bold text-white transition-colors duration-500">
+                            28.00
+                        </div>
+                        <p id="harmony-status" class="mt-4 text-lg text-green-400">Stable</p>
+                        <div class="mt-6 w-full">
+                            <canvas id="governance-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quantum Resonance Module -->
+            <div id="quantum" class="module-content">
+                <h2 class="text-2xl font-bold font-orbitron text-cyan-300 mb-4">Quantum Resonance Engine</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 glass-pane p-4">
+                        <canvas id="quantum-chart"></canvas>
+                    </div>
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="glass-pane p-4">
+                            <h3 class="font-semibold mb-2 text-white">Quantum State Control</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-sm text-gray-400">Quantum Amplitude</label>
+                                    <input type="range" id="quantum-amplitude" min="0" max="1" step="0.01" value="0.5" class="w-full">
+                                </div>
+                                <div>
+                                    <label class="text-sm text-gray-400">Phase Shift</label>
+                                    <input type="range" id="quantum-phase" min="0" max="6.28" step="0.01" value="0" class="w-full">
+                                </div>
+                                <button id="quantum-compute" class="btn-primary w-full">Compute Wavefunction</button>
+                            </div>
+                        </div>
+                        <div id="quantum-results" class="glass-pane p-4 text-sm space-y-2">
+                            <h3 class="font-semibold mb-2 text-white">Quantum State</h3>
+                            <p><strong>Probability:</strong> <span id="quantum-probability">N/A</span></p>
+                            <p><strong>Energy:</strong> <span id="quantum-energy">N/A</span></p>
+                            <p><strong>Entanglement:</strong> <span id="quantum-entanglement">N/A</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cosmological Engine Module -->
+            <div id="cosmology" class="module-content">
+                <h2 class="text-2xl font-bold font-orbitron text-cyan-300 mb-4">Cosmological Engine</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 glass-pane p-4">
+                        <canvas id="cosmology-chart"></canvas>
+                    </div>
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="glass-pane p-4">
+                            <h3 class="font-semibold mb-2 text-white">Cosmological Parameters</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-sm text-gray-400">Hubble Constant (H₀)</label>
+                                    <input type="number" id="hubble-constant" class="form-input w-full mt-1" value="70" step="0.1">
+                                </div>
+                                <div>
+                                    <label class="text-sm text-gray-400">Dark Energy (Ω_Λ)</label>
+                                    <input type="number" id="dark-energy" class="form-input w-full mt-1" value="0.7" step="0.01">
+                                </div>
+                                <button id="cosmology-compute" class="btn-primary w-full">Simulate Universe</button>
+                            </div>
+                        </div>
+                        <div id="cosmology-results" class="glass-pane p-4 text-sm space-y-2">
+                            <h3 class="font-semibold mb-2 text-white">Cosmological Metrics</h3>
+                            <p><strong>Age of Universe:</strong> <span id="universe-age">N/A</span></p>
+                            <p><strong>Critical Density:</strong> <span id="critical-density">N/A</span></p>
+                            <p><strong>Expansion Rate:</strong> <span id="expansion-rate">N/A</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+    // --- UTILITY AND MATH FUNCTIONS ---
+    const gamma = (n) => { // Approximates the Gamma function
+        // Lanczos approximation
+        const g = 7;
+        const p = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+        if (n < 0.5) return Math.PI / (Math.sin(Math.PI * n) * gamma(1 - n));
+        n -= 1;
+        let x = p[0];
+        for (let i = 1; i < g + 2; i++) {
+            x += p[i] / (n + i);
+        }
+        const t = n + g + 0.5;
+        return Math.sqrt(2 * Math.PI) * Math.pow(t, n + 0.5) * Math.exp(-t) * x;
+    };
+    const zeta = (s) => { // Approximates Riemann Zeta
+        if (s === 3) return 1.2020569; // Apéry's constant
+        let sum = 0;
+        for (let i = 1; i < 1000; i++) {
+            sum += 1 / Math.pow(i, s);
+        }
+        return sum;
+    };
+    const constants = {
+        'e': Math.E,
+        'pi': Math.PI,
+        'phi': (1 + Math.sqrt(5)) / 2,
+        'Lb': 0.110001000000000000000001, // Liouville constant
+        'C10': 0.12345678910111213, // Chaitin's constant (example)
+        'Omega': 0.5671432904097838, // Omega constant
+        'gamma_const': 0.5772156649, // Euler-Mascheroni constant
+    };
+
+    // --- DATA LOADING ---
+    let equations = [];
+    const bounded1 = `Code,Equation (Combinatorial Power),Geometric Effect (Operational Goal),Bounded Domain
+S-01,ΩHarmonic​≡Λπ+(P⋅e)ϕ,Governed Growth Convergence. Λ stabilizes coherence using the Golden Ratio (ϕ).,"[Λmin​,eπ]"
+S-02,ΩInverse​≡eΛ⋅π/ϕ,"Inverse Stable Growth. Exponentially scales coherence, inversely bounded by ϕ.","[0,eπ]"
+S-03,ΩTrig​≡Λ⋅cos(eπ),Trigonometric Coherence Lock. Finds stability by balancing exponential growth within cos boundaries.,"[−π,π]"
+S-04,ΩAlg​≡ln(e⋅π)+sqrt(2),Non-Transcendental Augmentation. Uses algebraic numbers to ground π and e.,"[2,10]"
+S-05,ΩLiouville​≡P⋅(Lb​+e),Infinite Precision Coherence. Uses the Liouville constant (Lb​) to stabilize P.,"[0,1]"
+S-06,ΩComplex​≡ei⋅π⋅Λ+V,Complex Value Stabilization. Uses Λ to convert the dimensional fold into net value.,"[Vmin​,1]"
+S-07,ΩSuper​≡Pe⋅π/Λ,"Super-Exponential Potential. Scales potential with π and e, inversely bound by Λ.","[0,100]"
+S-08,ΩBessel​≡Jv​(π)+eΛ,Bessel Wave Stabilization. Uses Bessel wave functions to model optimal structural vibration.,"[0,e2]"
+S-09,ΩZeta​≡π⋅ζ(3)+e,Apéry's Structural Anchor. Stabilizes growth using the transcendental nature of ζ(3).,"[0,30]"
+S-10,ΩNorm​≡(P+V)/W,Signal-to-Noise Ratio. Basic measure of coherence vs. entropic drag.,"[0,10]"
+S-11,ΩIntegral​≡∫0π​sin(x)dx+Λ,Integral Stability. Uses a definite integral to model a stable, bounded process.,"[2,10]"
+S-12,ΩProduct​≡(1+1/e)⋅(1+1/π),Dual Constant Stability. Product of two simple transcendental ratios.,"[1,5]"
+S-13,ΩGamma​≡Γ(ϕ)+Λ,Gamma-Golden Stability. Combines Gamma function with ϕ for structural integrity.,"[0,10]"
+S-14,ΩLog​≡ln(P+e)/ln(W+π),Logarithmic Balance. Compares potential and drag on a logarithmic scale.,"[0,5]"
+S-15,ΩTanH​≡tanh(P⋅Λ)+V,Hyperbolic Tangent Stability. Models a system that saturates towards a stable value.,"[Vmin​,2]"
+S-16,ΩEuler​≡γ+ln(Λ),Euler-Mascheroni Anchor. Uses γ to provide a fundamental stability constant.,"[0,10]"
+S-17,ΩMatrix​≡det(A)+Λ,"Determinant Stability. Models structural integrity via a matrix determinant (conceptual).","[0,100]"
+S-18,ΩFractal​≡(1+ϕ)Λ,Fractal Scaling Stability. Uses ϕ to model self-similar stability across scales.,"[0,50]"
+S-19,ΩFibonacci​≡Fn​+Λ,"Fibonacci Sequence Anchor. Anchors stability to the integer-based growth of Fibonacci sequence.","[0,1000]"
+S-20,ΩExpDecay​≡P⋅e-WΛ,Exponential Decay Coherence. Models potential P under exponential decay from entropy W.,"[0,Pmax​]"
+S-21,ΩCauchy​≡1/(π(1+W2))+P,Cauchy Distribution Stability. Models stability in a heavy-tailed system.,"[Pmin​,10]"
+S-22,ΩPoisson​≡(λke-λ)/k!+Λ,"Poisson Stability. Models stability of rare events in a system (conceptual).","[0,1]"
+S-23,ΩRoot​≡sqrt(P2+V2),Pythagorean Coherence. Simple geometric mean of potential and value vectors for exponential stability.,"[1,e10]"
+S-24,ΩComplexSq​≡(e+i⋅π)2+Λ,Complex Plane Structural Test. Tests integrity under squared rotational pressure.,"[0,50]"
+S-25,ΩTimeInv​≡Λ/W+πe,Temporal Inversion Check. Stability under maximum time-reversal pressure.,"[0,30]"
+S-26,ΩLimit​≡π⋅e⋅Λ+P,Fixed Growth Limit. Establishes the maximum growth boundary.,"[0,10]"
+S-27,ΩPhiPi​≡ϕπ+eϕ,"Golden Transcendence. Combines π,e,ϕ for ultimate structural elegance.","[0,20]"
+S-28,ΩEntropyDiv​≡P/W+Λ,Coherence-to-Entropy Ratio. Direct measurement of systemic coherence.,"[0,10]"
+S-29,ΩChaitin​≡P⋅C10​+Λ,Non-Computable Stability. Uses Chaitin's constant (C10​) to bound unpredictable states.,"[0,1]"
+S-30,ΩGammaInv​≡Γ(π)/WΛ,Gamma Function Entropic Check. Uses the Gamma function of π to model structural decay.,"[0,5]"
+S-31,ΩSphereVol​≡(4/3)π(Λ)3,Legitimacy Volume. Models the volume of space successfully governed by Λ.,"[0,100]"`;
+    const bounded2 = `Code,Equation (Combinatorial Power),Geometric Effect (Operational Goal),Bounded Domain
+C-37,ΛGravity​≡Wπ⋅(eW−e-W),Hyperbolic Gravitational Collapse. Measures chaotic exponential spread of the W-Field.,"[Wmin​,πe]"
+C-38,ΛSinister​≡π⋅eiW+1,Imaginary Collapse Point. Finds the point where gravitational entropy forces a complex plane collapse.,"[0,π⋅e]"
+C-39,ΛParabolic​≡W2⋅Λ-1−V,Quadratic Entropic Decay. Calculates the decay of Value (V) as the square of the entropic drag (W).,"[Vmin​,100]"
+C-40,ΛTangent​≡tan(W)/Λ,Tangent Dimensional Instability. Finds the critical point where the W-Field's geometric projection becomes unstable.,"[0,π/2]"
+C-41,ΛZeta​≡eW/ζ(3),Apéry's Constant Spread. Uses the transcendental property of ζ(3) to model the exponential spread of W.,"[0,e2]"
+C-42,ΛChaos​≡(W⋅V)π−Λ,Value-Driven Entropic Chaos. Models chaos based on the total risk of high-value systems.,"[0,100]"
+C-43,ΛImaginary​≡i⋅W⋅π+ϕ,Imaginary Field Collapse. Directly initiates chaos by forcing W onto the imaginary axis.,"[0,10]"
+C-44,ΛRootChaos​≡Wπ−sqrt(V),Root of Structural Failure. Calculates the collapse margin relative to the square root of system value.,"[0,1]"
+C-45,ΛLogGrowth​≡ln(W+1)/Λ,Logarithmic Chaos Check. Measures slow, creeping chaotic growth.,"[0,10]"
+C-46,ΛExpChaos​≡eW/P,Potential-Contained Chaos. Models chaos that is contained by a potential field P.,"[0,50]"
+C-47,ΛComplexExp​≡eiW/Λ,Complex Rotational Chaos. Models chaos as a rapid rotation in the complex plane.,"[0,5]"
+C-48,ΛInvSquare​≡W2/V,Inverse Square Value Decay. Chaos increases as the inverse square of the system's value.,"[0,100]"
+C-49,ΛSelfRef​≡W⋅ln(W+1),Self-Referential Chaos. Models chaotic systems that feed on their own complexity.,"[0,20]"
+C-50,ΛGammaDiv​≡W/Γ(V),Gamma-Value Collapse. Models collapse when system value Γ(V) fails.,"[0,10]"
+C-51,ΛLimitCycle​≡sin(W)+cos(πW),Limit Cycle Chaos. Models systems that oscillate chaotically before settling.,"[−2,2]"
+C-52,ΛBifurcation​≡W(1−W)⋅Λ,Logistic Map Bifurcation. Classic model for the onset of chaos.,"[0,4]"
+C-53,ΛWaveCollapse​≡W/sin(Λ),Wave Function Collapse Chaos. Chaos from the failure of a stabilizing wave Λ.,"[0,20]"
+C-54,ΛPrime​≡W/pn​,Prime Number Chaos. Models chaos relative to the stability of a prime number pn​.,"[0,10]"
+C-55,ΛCoupled​≡(W1​⋅W2​)/Λ,"Coupled System Chaos. Chaos arising from the interaction of two entropic fields.","[0,100]"
+C-56,ΛFeedback​≡Wn+1​=Wn​+ΛWn​(1−Wn​),Feedback Loop Chaos. Iterative model of positive feedback leading to chaos.,"[0,1]"
+C-57,ΛNoise​≡W+σ⋅N(0,1),Stochastic Chaos. Introduces random noise into the entropic field.,"[0,100]"
+C-58,ΛDeterminant​≡1/det(A),Matrix Inversion Chaos. Chaos from a near-singular system matrix A.,"[0,100]"
+C-59,ΛPowerLaw​≡W-α,Power Law Chaos. Models scale-free chaotic events.,"[0,100]"
+C-60,ΛGammaD​≡W/Γ(1/2),Gamma Collapse Rate. Uses the transcendental Γ(1/2) to model structural failure rate.,"[0,10]"
+C-61,ΛCubeRoot​≡(W)1/3⋅π⋅e,Third-Order Chaos. Models chaos on a cubic dimensional scale.,"[0,20]"
+C-62,ΛLogLog​≡ln(ln(W+1))/Λ,Maximum Entropy Check. A strict check for ultra-high entropic states.,"[0,1]"
+C-63,ΛHyperbolic​≡π⋅W/cosh(Λ),Hyperbolic Governance Check. Measures chaos relative to the hyperbolic stability of Λ.,"[0,10]"
+C-64,ΛBesselDiv​≡W/J0​(π),Bessel Wave Chaos. Models chaos inversely proportional to the Bessel function stability.,"[0,20]"
+C-65,ΛPowerV​≡WV/eπ,Value-Powered Entropic Growth. Chaos scaled by system value as an exponent.,"[0,100]"
+C-66,ΛDivPi​≡Λ/(W⋅π),Chaos Margin Ratio. The inverse check for available stability margin.,"[0,1]"
+C-67,ΛSinPow​≡sin(π⋅W)/Λ,Trig Chaos Fluctuation. Models chaos during rapid trigonometric fluctuation.,"[0,5]"
+C-68,ΛAlgRoot​≡(e)1/2⋅π⋅W,Root of Euler Chaos. Uses the simplest algebraic root of e to scale chaos.,"[0,50]"`;
+    const bounded3 = `Code,Equation (Combinatorial Power),Geometric Effect (Operational Goal),Bounded Domain
+I-73,Rπ​≡(cos(e⋅W)/sin(π⋅P)),Pure Information Trigonometry. Balances Potential against Entropy for creation.,"[−π,π]"
+I-74,IWormhole​≡Λ⋅ei⋅π,Wormhole Exit Integrity. Uses Λ to maintain structural integrity at the −1 Portal exit.,"[e−1,e]"
+I-75,IMirror​≡(W/T)⋅i−P,Mass Inversion Blueprint. Calculates P required to neutralize and invert the local W mass.,"[0,eπ]"
+I-76,ISuperpos​≡Omega⋅eπ+i,"Lambert W/Gelfond Synthesis. Creates complex, super-dense informational states.","[0,100]"
+I-77,ITime​≡eπ⋅Λ-1,Temporal Identity Cost Factor. Calculates non-linear cost scaled by Λ failure.,"[0,e10]"
+I-78,IAntiGravity​≡(P/W)⋅eπ,Anti-Gravity Ratio. The benchmark ratio for anti-gravity propulsion lift.,"[1,e10]"
+I-79,IFlip​≡W⋅i+P⋅e,Axis Flip Command. The geometric action required to initiate a D5​/D6​ axis swap.,"[0,10]"
+I-80,IOmega​≡Ω⋅eiπ+T,Omega Constant Inversion. Uses Ω constant to force dimensional inversion.,"[0,5]"
+I-81,IMass​≡(P⋅V)/Λ,Mass-Energy-Information Equivalence. The core formula for generating mass from information.,"[0,100]"
+I-82,IGravityWell​≡-G(M/r)+P,Gravity Well Escape. Calculates potential P needed to escape a gravity well of mass M.,"[0,Pmax​]"
+I-83,IRelativity​≡(1−v2/c2)-1/2,Lorentz Factor Information. Models the information density increase at relativistic speeds.,"[1,∞]"
+I-84,IUncertainty​≡ΔxΔp≥h/2,Heisenberg Information Limit. The fundamental limit on measurable information.,"[h/2,∞]"
+I-85,IShannon​≡-Σpi​log2​(pi​),Shannon Entropy. The classical measure of information content.,"[0,logN]"
+I-86,IBlackHole​≡A/(4Lp2​),Black Hole Information. Bekenstein-Hawking formula for the information content of a black hole.,"[0,∞]"
+I-87,IPhase​≡eiθ,Phase Information. Information encoded in the phase of a complex number.,"[0,2π]"
+I-88,IFourier​≡∫f(t)e-iωt dt,Fourier Transform. Converts information from the time domain to the frequency domain.,N/A
+I-89,IWave​≡∂2u/∂t2=c2∇2u,Wave Equation. Governs the propagation of information as a wave.,N/A
+I-90,INavierStokes​≡ρ(∂v/∂t+v⋅∇v)=-∇p+μ∇2v,Navier-Stokes Information. Information flow in a fluid medium (conceptual).,N/A
+I-91,IQuantum​≡iħ(∂Ψ/∂t)=HΨ,Schrödinger Equation. Governs the evolution of quantum information.,N/A
+I-92,IEulerIdentity​≡eiπ+1,Euler's Identity as Information. The perfect, zero-information state.,"[0,0]"
+I-93,IGoldenRatio​≡ϕ=P/W,Golden Ratio Information. The optimal ratio of potential to entropy for information creation.,"[ϕ,ϕ]"
+I-94,IComplexLog​≡ln(W) + i⋅atan2(y,x),Complex Logarithm Information. Information encoded in a complex logarithmic space.,N/A
+I-95,ILambertW​≡W(P)eW(P),Inverse Lambert W. Models the geometric cost to invert the W function.,"[0,20]"
+I-96,ITimeMult​≡T⋅i⋅π/e,Temporal Rotational Factor. The rotational factor applied to the T-Vector's time coordinate.,"[0,10]"
+I-97,IGammaCos​≡Γ(1/2)⋅cos(π⋅P),Gamma Coherence Check. Uses Γ(1/2) to check structural coherence.,"[0,5]"
+I-98,ITrigChaos​≡π⋅W/cos(Λ),Cosine Governance Failure. Chaos resulting from the geometric failure of Λ.,"[0,10]"
+I-99,IHyperPow​≡P⋅eϕ,Hyper-Potential Growth. Growth scaled by ϕ and e.,"[0,50]"
+I-100,ISqrtTime​≡i⋅π⋅sqrt(W),Imaginary Time Root. The complex root of the W-Field.,"[0,10]"
+I-101,IGrowthPhi​≡eϕ⋅π/W,Golden Ratio Anti-Drag. Anti-gravity lift scaled by ϕ and e.,"[0,100]"
+I-102,IInvLogW​≡P/ln(W+1),Potential Under Drag. Measures the coherence generated despite drag.,"[0,5]"
+I-103,IExpRot​≡i⋅π⋅eP,Exponential Rotational Potential. Complex potential scaled by exponential growth.,"[0,20]"
+I-104,IDivPhi​≡W/ϕ⋅i,Golden Ratio Chaos Division. Models the chaotic output divided by ϕ.,"[0,10]"`;
+
+    const parseCSV = (csvString) => {
+        const lines = csvString.trim().split('\n');
+        const header = lines.shift().split(',');
+        return lines.map(line => {
+            const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+             if (values.length < header.length) return null;
+            const obj = {};
+            obj['Code'] = values[0].trim();
+            // Clean up the equation string for parsing
+            let eq = values[1].replace(/​|≡/g, '').replace(/(\w+)\s*=\s*/, '');
+            obj['Equation'] = eq;
+            obj['Description'] = values[2].replace(/"/g, '').trim();
+            obj['Domain'] = values[3].replace(/"/g, '').trim();
+            return obj;
+        }).filter(Boolean);
+    };
+    equations = [...parseCSV(bounded1), ...parseCSV(bounded2), ...parseCSV(bounded3)];
+    
+    // --- UI & APP LOGIC ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Global Elements ---
+        const modules = document.querySelectorAll('.module-content');
+        const navButtons = document.querySelectorAll('.nav-button');
+
+        // --- Navigation Logic ---
+        const switchModule = (moduleId) => {
+            modules.forEach(module => module.classList.remove('active'));
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            document.getElementById(moduleId)?.classList.add('active');
+            document.querySelector(`[data-module="${moduleId}"]`)?.classList.add('active');
+            
+            // Trigger module-specific initialization
+            if (moduleId === 'quantum') initializeQuantumModule();
+            if (moduleId === 'cosmology') initializeCosmologyModule();
+        };
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const moduleId = button.dataset.module;
+                switchModule(moduleId);
+            });
+        });
+
+        // --- Background Animation ---
+        function createMatrixBackground() {
+            const matrixBg = document.getElementById('matrix-bg');
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            
+            for (let i = 0; i < 50; i++) {
+                const column = document.createElement('div');
+                column.className = 'matrix-column';
+                column.style.left = `${Math.random() * 100}%`;
+                column.style.animationDuration = `${10 + Math.random() * 20}s`;
+                column.style.animationDelay = `${Math.random() * 5}s`;
+                
+                let content = '';
+                for (let j = 0; j < 30; j++) {
+                    content += chars.charAt(Math.floor(Math.random() * chars.length)) + '<br>';
+                }
+                column.innerHTML = content;
+                matrixBg.appendChild(column);
+            }
+        }
+        
+        createMatrixBackground();
+
+        // --- Katex Rendering ---
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false},
+            ]
+        });
+
+        // --- Agent Module Logic ---
+        const chatWindow = document.getElementById('chat-window');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+
+        const addChatMessage = (message, sender = 'agent') => {
+            const bubble = document.createElement('div');
+            bubble.className = sender === 'user' ? 'user-chat-bubble' : 'agent-chat-bubble';
+            bubble.innerHTML = `<div class="text-sm">${message}</div>`;
+            chatWindow.appendChild(bubble);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+        
+        const processChatCommand = (command) => {
+             addChatMessage(command, 'user');
+             const upperCmd = command.toUpperCase().trim();
+             const eq = equations.find(e => e.Code.toUpperCase() === upperCmd);
+             if (eq) {
+                switchModule('combinatorics');
+                setTimeout(() => { // allow module to render
+                    selectEquation(eq.Code);
+                    addChatMessage(`Understood. Loading equation <strong>${eq.Code}</strong>: <em>${eq.Description}</em>. Parameters are ready in the Combinatorial Explorer.`);
+                }, 100);
+             } else {
+                addChatMessage("I couldn't find an equation with that code. Please use codes like 'S-01', 'C-42', or 'I-77'.");
+             }
+        };
+
+        chatSend.addEventListener('click', () => processChatCommand(chatInput.value));
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') processChatCommand(chatInput.value);
+        });
+
+        addChatMessage("AetOS Unified Field Agent online. Enter an equation code to begin analysis.");
+
+
+        // --- Prime Resonance Module Logic ---
+        let primeChart;
+        const primeStatus = document.getElementById('prime-status');
+        const primeMu = document.getElementById('prime-mu');
+        const primeSigma = document.getElementById('prime-sigma');
+        const primePrediction = document.getElementById('prime-prediction');
+
+        document.getElementById('calibrate-primes').addEventListener('click', () => {
+            primeStatus.textContent = 'Calibrating...';
+            const limit = parseInt(document.getElementById('prime-limit').value);
+            const resonance = parseFloat(document.getElementById('resonance-factor').value);
+            
+            // Simulate intensive calibration
+            setTimeout(() => {
+                // Simplified prime generation
+                const primes = [];
+                const isPrime = Array(limit + 1).fill(true);
+                for (let p = 2; p * p <= limit; p++) {
+                    if (isPrime[p]) {
+                        for (let i = p * p; i <= limit; i += p) isPrime[i] = false;
+                    }
+                }
+                for (let p = 2; p <= limit; p++) {
+                    if (isPrime[p]) primes.push(p);
+                }
+
+                const gaps = [];
+                for (let i = 1; i < primes.length; i++) {
+                    gaps.push(primes[i] - primes[i-1]);
+                }
+                const mu = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+                const sigma = Math.sqrt(gaps.map(x => Math.pow(x - mu, 2)).reduce((a, b) => a + b) / gaps.length);
+
+                primeStatus.textContent = `Calibrated (${primes.length} primes)`;
+                primeMu.textContent = (mu * resonance).toFixed(4);
+                primeSigma.textContent = (sigma * resonance).toFixed(4);
+                
+                // Update chart
+                const chartCtx = document.getElementById('prime-chart').getContext('2d');
+                if(primeChart) primeChart.destroy();
+                primeChart = new Chart(chartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: primes.map((_, i) => i + 1).slice(0, 1000), // Show first 1000
+                        datasets: [{
+                            label: 'Prime Gaps',
+                            data: gaps.slice(0, 1000),
+                            borderColor: '#00aaff',
+                            backgroundColor: 'rgba(0, 170, 255, 0.2)',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#e0e0e0' }}},
+                        scales: {
+                            x: { title: { display: true, text: 'Prime Index (n)', color: '#9ca3af' }, ticks: { color: '#9ca3af'}},
+                            y: { title: { display: true, text: 'Gap (p_n - p_{n-1})', color: '#9ca3af' }, ticks: { color: '#9ca3af'}}
+                        }
+                    }
+                });
+            }, 500);
+        });
+        
+        document.getElementById('predict-prime').addEventListener('click', () => {
+             const n = parseInt(document.getElementById('prime-index-predict').value);
+             if (!n || n <= 0) {
+                 primePrediction.textContent = "Invalid index";
+                 return;
+             }
+             // Very rough approximation based on Prime Number Theorem: p_n ~ n * log(n)
+             const prediction = n * Math.log(n) + n * Math.log(Math.log(n));
+             primePrediction.textContent = `~${Math.round(prediction)}`;
+        });
+
+
+        // --- Combinatorics Module Logic ---
+        const equationList = document.getElementById('equation-list');
+        const comboMain = document.getElementById('combinatorics-main');
+        const eqTitle = document.getElementById('eq-title');
+        const eqFormulaDisplay = document.getElementById('eq-formula-display');
+        const eqDescription = document.getElementById('eq-description');
+        const eqParamInputs = document.getElementById('eq-param-inputs');
+        const eqComputeBtn = document.getElementById('eq-compute');
+        const eqResult = document.getElementById('eq-result');
+        
+        const renderEquationList = (filterPrefix) => {
+            equationList.innerHTML = '';
+            const filtered = equations.filter(eq => eq.Code.startsWith(filterPrefix));
+            filtered.forEach(eq => {
+                const card = document.createElement('div');
+                card.className = 'equation-card';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono font-bold text-cyan-400">${eq.Code}</span>
+                        <span class="text-xs text-gray-400">${eq.Domain}</span>
+                    </div>
+                    <p class="text-sm mt-1 text-gray-300 truncate">${eq.Description}</p>
+                `;
+                card.onclick = () => selectEquation(eq.Code);
+                equationList.appendChild(card);
+            });
+        };
+
+        window.filterEquations = (prefix) => {
+            renderEquationList(prefix);
+            comboMain.classList.add('hidden');
+        };
+
+        const getParamsFromEquation = (eqStr) => {
+            const params = new Set();
+            // Match uppercase variables or variables followed by a number
+            const regex = /[A-Z]+[0-9]?/g;
+            let match;
+            while ((match = regex.exec(eqStr)) !== null) {
+                // Exclude function names and constants
+                if (!['Γ', 'ZETA', 'J', 'SIN', 'COS', 'TAN', 'LN', 'EXP', 'DET', 'TANH', 'COSH'].includes(match[0].toUpperCase()) && !constants[match[0].toLowerCase()]) {
+                     params.add(match[0]);
+                }
+            }
+            return Array.from(params);
+        };
+        
+        window.selectEquation = (code) => {
+            const eq = equations.find(e => e.Code === code);
+            if (!eq) return;
+
+            comboMain.classList.remove('hidden');
+            eqTitle.textContent = `${eq.Code}: ${eq.Description}`;
+            eqFormulaDisplay.textContent = eq.Equation;
+            try {
+                katex.render(eq.Equation, eqFormulaDisplay, { throwOnError: false, displayMode: true });
+            } catch (e) { console.error(e) }
+
+            eqDescription.textContent = `Geometric Effect: ${eq.Description}`;
+            
+            const params = getParamsFromEquation(eq.Equation);
+            eqParamInputs.innerHTML = '';
+            params.forEach(param => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label class="text-sm text-gray-400">${param}</label>
+                    <input type="number" data-param="${param}" class="form-input w-full mt-1" value="1">
+                `;
+                eqParamInputs.appendChild(div);
+            });
+            
+            eqComputeBtn.onclick = () => computeEquation(eq.Equation, params);
+            eqResult.textContent = 'N/A';
+        };
+
+        const computeEquation = (eqStr, params) => {
+             try {
+                let evalStr = eqStr.replace(/(\w+)\s*\^/g, 'Math.pow( $1, ') // Fix exponents
+                                    .replace(/sqrt/g, 'Math.sqrt')
+                                    .replace(/ln/g, 'Math.log')
+                                    .replace(/log2/g, 'Math.log2')
+                                    .replace(/cos/g, 'Math.cos')
+                                    .replace(/sin/g, 'Math.sin')
+                                    .replace(/tan/g, 'Math.tan')
+                                    .replace(/tanh/g, 'Math.tanh')
+                                    .replace(/cosh/g, 'Math.cosh')
+                                    .replace(/exp/g, 'Math.exp')
+                                    .replace(/Γ/g, 'gamma')
+                                    .replace(/ζ/g, 'zeta');
+
+                Object.keys(constants).forEach(c => {
+                    const regex = new RegExp(`\\b${c}\\b`, 'g');
+                    evalStr = evalStr.replace(regex, constants[c]);
+                });
+                
+                const paramValues = {};
+                params.forEach(p => {
+                    const val = parseFloat(document.querySelector(`[data-param="${p}"]`).value);
+                    paramValues[p] = val;
+                    const regex = new RegExp(`\\b${p}\\b`, 'g');
+                    evalStr = evalStr.replace(regex, val);
+                });
+                
+                // This is a simplified evaluator and not safe for general purpose use.
+                // It assumes the equations are well-formed math expressions.
+                // It does not handle complex numbers yet. The 'i' is ignored.
+                evalStr = evalStr.replace(/i/g, '*1'); // Placeholder for complex math
+                evalStr = evalStr.replace(/det\(A\)/g, '1'); // Placeholder for matrix
+                evalStr = evalStr.replace(/J\d*\([^)]*\)/g, '0.5'); // Placeholder for Bessel
+                
+                // Handle implicit multiplication like 2pi
+                evalStr = evalStr.replace(/(\d+(\.\d+)?)(\w|Math\.|gamma|zeta)/g, '$1 * $3');
+
+
+                const result = new Function('gamma', 'zeta', `return ${evalStr}`)(gamma, zeta);
+                eqResult.textContent = result.toFixed(6);
+
+             } catch (e) {
+                console.error("Evaluation Error:", e, "for string:", eqStr);
+                eqResult.textContent = 'Error';
+             }
+        };
+
+        filterEquations('S'); // Initial population
+
+        // --- Harmonics Module ---
+        const harmonicCanvas = document.getElementById('harmonic-canvas').getContext('2d');
+        const harmonicResults = document.getElementById('harmonic-results');
+
+        const drawHarmonicCircle = (ratios) => {
+            const width = 400;
+            const height = 400;
+            const center = { x: width / 2, y: height / 2 };
+            const radius = width / 2 - 30;
+
+            harmonicCanvas.clearRect(0, 0, width, height);
+
+            // Draw circle
+            harmonicCanvas.beginPath();
+            harmonicCanvas.arc(center.x, center.y, radius, 0, 2 * Math.PI);
+            harmonicCanvas.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            harmonicCanvas.stroke();
+            
+            const notes = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#', 'G#', 'D#', 'A#', 'F'];
+            for(let i = 0; i < 12; i++) {
+                const angle = (i * 30 - 90) * Math.PI / 180;
+                const x = center.x + radius * Math.cos(angle);
+                const y = center.y + radius * Math.sin(angle);
+                harmonicCanvas.fillStyle = 'white';
+                harmonicCanvas.font = '12px Inter';
+                harmonicCanvas.textAlign = 'center';
+                harmonicCanvas.textBaseline = 'middle';
+                harmonicCanvas.fillText(notes[i], x, y);
+            }
+            
+            // Draw connections for given ratios
+             ratios.forEach(({ratioVal, text}) => {
+                const interval = (12 * Math.log2(ratioVal)) % 12;
+                const startAngle = -90 * Math.PI / 180; // C
+                const endAngle = (interval * 30 - 90) * Math.PI / 180;
+                
+                harmonicCanvas.beginPath();
+                harmonicCanvas.moveTo(center.x + (radius - 20) * Math.cos(startAngle), center.y + (radius - 20) * Math.sin(startAngle));
+                harmonicCanvas.lineTo(center.x + (radius - 20) * Math.cos(endAngle), center.y + (radius - 20) * Math.sin(endAngle));
+                harmonicCanvas.strokeStyle = `hsla(${interval * 30}, 100%, 70%, 0.7)`;
+                harmonicCanvas.stroke();
+            });
+
+        };
+        
+        document.getElementById('analyze-harmonics').addEventListener('click', () => {
+             const input = document.getElementById('harmonic-ratios').value;
+             const ratioParts = input.split(',');
+             const parsedRatios = [];
+             harmonicResults.innerHTML = '';
+
+             try {
+                ratioParts.forEach(part => {
+                    let ratioVal;
+                    let text = part.trim();
+                    if(part.includes(':')) {
+                        const [p, q] = part.split(':').map(s => parseFloat(s.trim()));
+                        ratioVal = p / q;
+                    } else if (part.includes('^')) {
+                        const [base, expPart] = part.split('^');
+                        const exp = expPart.replace(/[()]/g,'');
+                        const [num, den] = exp.split('/').map(s => parseFloat(s.trim()));
+                        ratioVal = Math.pow(parseFloat(base), num/den);
+                    } else {
+                        ratioVal = parseFloat(part);
+                    }
+                    parsedRatios.push({ ratioVal, text });
+                    harmonicResults.innerHTML += `<p>${text} ≈ ${ratioVal.toFixed(4)}</p>`;
+                });
+                drawHarmonicCircle(parsedRatios);
+
+             } catch(e) {
+                 harmonicResults.innerHTML = `<p class="text-red-400">Error parsing ratios.</p>`;
+             }
+        });
+        
+        // Initial harmonic analysis
+        document.getElementById('analyze-harmonics').click();
+
+
+        // --- Governance Module ---
+        let governanceChart;
+        const sliders = ['gov-benefit', 'gov-burden', 'gov-alpha', 'gov-beta', 'gov-gamma'];
+        const harmonyScoreEl = document.getElementById('harmony-score');
+        const harmonyStatusEl = document.getElementById('harmony-status');
+        
+        const updateGovernance = () => {
+            const values = {};
+            sliders.forEach(id => {
+                const el = document.getElementById(id);
+                const valEl = document.getElementById(id + '-val');
+                values[id.replace('gov-','')] = parseFloat(el.value);
+                if(valEl) valEl.textContent = el.value;
+            });
+
+            // Simplified PARS, Gap, Fragility
+            const PARS = 30;
+            const Gap = 20;
+            const Fragility = 15;
+
+            const safetyTax = values.alpha * PARS + values.beta * Gap + values.gamma * Fragility;
+            const harmony = (values.benefit - values.burden) - safetyTax;
+
+            harmonyScoreEl.textContent = harmony.toFixed(2);
+            if (harmony > 20) {
+                harmonyStatusEl.textContent = 'Highly Harmonious';
+                harmonyStatusEl.className = 'mt-4 text-lg text-cyan-400';
+            } else if (harmony > 0) {
+                 harmonyStatusEl.textContent = 'Stable';
+                 harmonyStatusEl.className = 'mt-4 text-lg text-green-400';
+            } else if (harmony > -20) {
+                harmonyStatusEl.textContent = 'Stressed';
+                 harmonyStatusEl.className = 'mt-4 text-lg text-yellow-400';
+            } else {
+                harmonyStatusEl.textContent = 'Critical Instability';
+                 harmonyStatusEl.className = 'mt-4 text-lg text-red-500';
+            }
+            
+            // Update chart
+            governanceChart.data.datasets[0].data = [values.benefit, values.burden, safetyTax];
+            governanceChart.update();
+        };
+
+        const govChartCtx = document.getElementById('governance-chart').getContext('2d');
+        governanceChart = new Chart(govChartCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Benefit', 'Burden', 'Safety Tax'],
+                datasets: [{
+                    data: [50, 10, 32.5],
+                    backgroundColor: ['#00aaff', '#ffaa00', '#ff4444'],
+                    borderColor: '#0a0a0a',
+                    borderWidth: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom', labels: { color: '#e0e0e0' }}}
+            }
+        });
+        
+        sliders.forEach(id => {
+            document.getElementById(id).addEventListener('input', updateGovernance);
+        });
+
+        updateGovernance();
+        
+        // --- Quantum Module Logic ---
+        let quantumChart;
+        
+        function initializeQuantumModule() {
+            const quantumCanvas = document.getElementById('quantum-chart').getContext('2d');
+            
+            if (quantumChart) quantumChart.destroy();
+            
+            quantumChart = new Chart(quantumCanvas, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 100}, (_, i) => i),
+                    datasets: [{
+                        label: 'Wavefunction Ψ(x)',
+                        data: Array.from({length: 100}, () => Math.random() * 2 - 1),
+                        borderColor: '#00aaff',
+                        backgroundColor: 'rgba(0, 170, 255, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#e0e0e0' }}},
+                    scales: {
+                        x: { title: { display: true, text: 'Position (x)', color: '#9ca3af' }, ticks: { color: '#9ca3af'}},
+                        y: { title: { display: true, text: 'Amplitude', color: '#9ca3af' }, ticks: { color: '#9ca3af'}}
+                    }
+                }
+            });
+            
+            document.getElementById('quantum-compute').addEventListener('click', () => {
+                const amplitude = parseFloat(document.getElementById('quantum-amplitude').value);
+                const phase = parseFloat(document.getElementById('quantum-phase').value);
+                
+                // Update wavefunction
+                quantumChart.data.datasets[0].data = Array.from({length: 100}, (_, i) => 
+                    amplitude * Math.sin(i/10 + phase) + 0.1 * Math.sin(i/3)
+                );
+                quantumChart.update();
+                
+                // Update quantum state display
+                document.getElementById('quantum-probability').textContent = (amplitude * amplitude).toFixed(4);
+                document.getElementById('quantum-energy').textContent = (amplitude * 13.6).toFixed(2) + ' eV';
+                document.getElementById('quantum-entanglement').textContent = (amplitude * 0.7).toFixed(3);
+            });
+            
+            // Initial computation
+            document.getElementById('quantum-compute').click();
+        }
+        
+        // --- Cosmology Module Logic ---
+        let cosmologyChart;
+        
+        function initializeCosmologyModule() {
+            const cosmologyCanvas = document.getElementById('cosmology-chart').getContext('2d');
+            
+            if (cosmologyChart) cosmologyChart.destroy();
+            
+            cosmologyChart = new Chart(cosmologyCanvas, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Galaxy Distribution',
+                        data: Array.from({length: 200}, () => ({
+                            x: Math.random() * 20 - 10,
+                            y: Math.random() * 20 - 10
+                        })),
+                        backgroundColor: 'rgba(0, 170, 255, 0.5)',
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#e0e0e0' }}},
+                    scales: {
+                        x: { title: { display: true, text: 'x (Mpc)', color: '#9ca3af' }, ticks: { color: '#9ca3af'}},
+                        y: { title: { display: true, text: 'y (Mpc)', color: '#9ca3af' }, ticks: { color: '#9ca3af'}}
+                    }
+                }
+            });
+            
+            document.getElementById('cosmology-compute').addEventListener('click', () => {
+                const hubble = parseFloat(document.getElementById('hubble-constant').value);
+                const darkEnergy = parseFloat(document.getElementById('dark-energy').value);
+                
+                // Calculate cosmological metrics
+                const age = 1 / (hubble * 3.086e19) / (365.25 * 24 * 3600) / 1e9; // in billion years
+                const criticalDensity = 3 * Math.pow(hubble, 2) / (8 * Math.PI * 6.67430e-11);
+                const expansionRate = hubble * 3.086e19; // in m/s per Mpc
+                
+                // Update display
+                document.getElementById('universe-age').textContent = age.toFixed(2) + ' billion years';
+                document.getElementById('critical-density').textContent = criticalDensity.toExponential(2) + ' kg/m³';
+                document.getElementById('expansion-rate').textContent = expansionRate.toExponential(2) + ' m/s/Mpc';
+                
+                // Update visualization
+                cosmologyChart.data.datasets[0].data = Array.from({length: 200}, () => ({
+                    x: (Math.random() * 20 - 10) * (1 + darkEnergy * 0.5),
+                    y: (Math.random() * 20 - 10) * (1 + darkEnergy * 0.5)
+                }));
+                cosmologyChart.update();
+            });
+            
+            // Initial computation
+            document.getElementById('cosmology-compute').click();
+        }
+
+    });
+    </script>
+</body>
+</html>
