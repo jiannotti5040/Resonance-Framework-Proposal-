@@ -24,11 +24,6 @@ The included `.html` and `.py` files are **non-functional prototypes.** They are
 
 The prototypes fail because they lack the necessary calibrated parameters, which would need to be derived and validated from the theory's core principles.
 
-## Call for Peer Review Outside Academia
-
-This theory is presented to the whatever community wants to look any and all are welcome. 
-
-The framework requires analysis to determine if the core concept is viable and to properly define its mathematical structures.
 
 ## License
 
