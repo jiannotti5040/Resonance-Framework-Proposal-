@@ -1,5 +1,7 @@
 # The Iannotti Universal Resonance Framework (A Theoretical Proposal)
 
+Support jiannotti5040's open source work on a novel mathematical compendium with a broad and sweeping range of frameworks and applications to AI, mathematics, physics, finance, healthcare, and philosophy. Just a hobbyist trying to make a difference. (https://github.com/sponsors/jiannotti5040)
+
 ## Abstract
 
 This repository contains documentation for a theoretical framework proposing a novel, O(1) constant-time algorithm for prime number prediction.
