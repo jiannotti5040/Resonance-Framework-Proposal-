@@ -1,7 +1,6 @@
 # The Iannotti Universal Resonance Framework (A Theoretical Proposal)
 
-Support jiannotti5040's open source work on a novel mathematical compendium with a broad and sweeping range of frameworks and applications to AI, mathematics, physics, finance, healthcare, and philosophy. Just a hobbyist trying to make a difference. [<image-card alt="Sponsor" src="https://img.shields.io/badge/Sponsor-O(1" ></image-card>_Resonance-orange?logo=github)](https://github.com/sponsors/jiannotti5040)
-O(1) glass box framework, ethical AI vs. black-box bullshit—raw, unproven, willed for family. Support the fight.
+Support jiannotti5040's open source work on a novel mathematical compendium with a broad and sweeping range of frameworks and applications to AI, mathematics, physics, finance, healthcare, and philosophy. Just a hobbyist trying to make a difference.(https://github.com/sponsors/jiannotti5040)
 
 ## Abstract
 
