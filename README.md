@@ -38,5 +38,5 @@ Please see the `LICENSE` file. This material may **not** be used for any commerc
 
 ## Contact
 
-For academic collaboration, review, or commercial licensing inquiries, please contact:
+For academic collaboration, review, sales, or commercial licensing inquiries, please contact:
 jiannotti5040@gmail.com or jianotti1@gmail.com
